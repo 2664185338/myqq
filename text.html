@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API Test</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; background: #222; color: #fff; }
+  input { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; background: #333; color: #fff; border: 1px solid #555; font-size: 14px;}
+  button { width: 100%; padding: 15px; background: #12B7F5; color: white; border: none; font-size: 16px; border-radius: 5px;}
+  #result { margin-top: 20px; padding: 15px; background: #111; border: 1px solid #444; white-space: pre-wrap; word-break: break-all; min-height: 100px; font-size: 14px; line-height: 1.5;}
+</style>
+</head>
+<body>
+  <h2>🔌 API 连通性测试</h2>
+  <input id="url" placeholder="API Base URL" value="https://api.siliconflow.cn/v1">
+  <input id="key" placeholder="请粘贴你的 API Key (sk-...)" type="password">
+  <input id="model" placeholder="模型名称" value="Qwen/Qwen2.5-VL-7B-Instruct">
+  <button onclick="test()">开始测试</button>
+  <div id="result">等待测试... 请填写 Key 后点击按钮</div>
+
+  <script>
+    async function test() {
+      const url = document.getElementById('url').value.trim();
+      const key = document.getElementById('key').value.trim();
+      const model = document.getElementById('model').value.trim();
+      const resDiv = document.getElementById('result');
+      
+      if(!key) { alert("请先填入 API Key！"); return; }
+      
+      resDiv.innerText = "⏳ 正在请求 API，请稍候...";
+      
+      try {
+        const response = await fetch(url + '/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + key
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [{role: 'user', content: '你好，请回复“测试成功”'}],
+            max_tokens: 10
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          resDiv.innerText = "✅ 连接成功！\n\nAI 回复内容：\n" + data.choices[0].message.content;
+        } else {
+          resDiv.innerText = "❌ 请求失败 (HTTP " + response.status + ")\n\n详细错误信息：\n" + JSON.stringify(data, null, 2);
+        }
+      } catch (e) {
+        resDiv.innerText = "❌ 网络请求完全失败\n\n错误信息：\n" + e.message + "\n\n(请检查网络是否通畅，或 URL 是否正确)";
+      }
+    }
+  </script>
+</body>
+</html>
